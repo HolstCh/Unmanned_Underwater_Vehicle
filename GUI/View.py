@@ -22,20 +22,20 @@ class View(tk.Frame):
         tail_thruster_slider = tk.Scale(root, from_=28, to=-28, tickinterval=14)
 
         # widget and label placements within frame
-        left_servo_angle.pack(side="left", fill="both", expand=True)
-        left_servo_slider.pack(side="left", fill="both", expand=True)
-        left_thruster_force.pack(side="left", fill="both", expand=True)
-        left_thruster_slider.pack(side="left", fill="both", expand=True)
+        left_servo_angle.grid(column=0, row=0)
+        left_servo_slider.grid(column=0, row=1)
+        left_thruster_force.grid(column=1, row=0, padx=10)
+        left_thruster_slider.grid(column=1, row=1, padx=10)
 
-        right_servo_angle.pack(side="left", fill="both", expand=True)
-        right_servo_slider.pack(side="left", fill="both", expand=True)
-        right_thruster_force.pack(side="left", fill="both", expand=True)
-        right_thruster_slider.pack(side="left", fill="both", expand=True)
+        right_servo_angle.grid(column=0, row=2)
+        right_servo_slider.grid(column=0, row=3)
+        right_thruster_force.grid(column=1, row=2, padx=10)
+        right_thruster_slider.grid(column=1, row=3, padx=10)
 
-        tail_servo_angle.pack(side="left", fill="both", expand=True)
-        tail_servo_slider.pack(side="left", fill="both", expand=True)
-        tail_thruster_force.pack(side="left", fill="both", expand=True)
-        tail_thruster_slider.pack(side="left", fill="both", expand=True)
+        tail_servo_angle.grid(column=0, row=4)
+        tail_servo_slider.grid(column=0, row=5)
+        tail_thruster_force.grid(column=1, row=4, padx=10)
+        tail_thruster_slider.grid(column=1, row=5, padx=10)
 
         # example of setting value of slider:
         val = 15
