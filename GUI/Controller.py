@@ -14,6 +14,7 @@ class Controller():
         self.minThrust = 0
         self.maxAngle = 90
         self.minAngle = -90
+        self.model = Model()
         return
 
     def updateThrust(self, num, value):
@@ -42,4 +43,7 @@ class Controller():
                 print("cannot set thruster")
         else:
             print("cannot set thruster")                
+        return
+    
+    def sendToVehicle(self, component, value):      
         return
