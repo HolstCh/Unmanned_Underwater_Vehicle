@@ -1,7 +1,7 @@
-from View import View, tk
+from View import View, CTk
 
 if __name__ == '__main__':
-    root = tk.Tk()  # root object (pop up window)
-    view = View(root)
-    view.grid(column=0, row=1)
+    root = CTk.CTk()  # root object (pop up window)
+    root.title("Ground Control Station")
+    view = View(root, master=root)
     root.mainloop()
