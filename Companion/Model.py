@@ -118,6 +118,44 @@ class Model:
         # create thread to and assign it to update IMU data every 1s until program exits for real time data display
         self.thread = Thread(target=self.update_IMU_loop, daemon=True)
         self.thread.start()
+
+    def get_angle_pwm(self, angle):
+        conv_factor = 1000
+        if(angle < 0 and angle >= -90):
+            return -1*conv_factor*angle
+        elif(angle >= 0 and angle <= 90):
+            return conv_factor*angle
+        else:
+            print("Could not convert the invalid angle value, returning current value")
+            return -1
+
+
+    def parse_command(self, command):
+        #split the command by spaces
+        cmd_info = command.spilt()
+        #If the first block is not " *** ", reject the command
+        if cmd_info[0] != "***":
+            print("Could not parse command, command rejected")
+            return 
+        else: #scan for gripper, servo, or thruster requested
+            if(cmd_info[1] == "a1"): #angle 1
+                channel = 10
+                try:
+                    value = self.get_angle_pwm(cmd_info[2].float())
+                except:
+                    print("Could not parse angle value, try an actual number")
+                    return
+                if(value == -1):
+                    print("Could not convert angle value to pwm, leaving at original value")
+                    return
+                else:
+                    self.set_servo(channel, value)
+                    print("Set servo command processed")
+
+
+                
+            
+
     
     def start_gcs_connection(self):
         # Create a TCP/IP socket
@@ -146,6 +184,8 @@ class Model:
                 while True:
                     data = connection.recv(1024)
                     print('Received {!r}'.format(data))
+                    #send command for parsing
+                    self.parse_command(self, data)
                     if data:
                         print('Sending data back to the client')
                         connection.sendall(data)
@@ -156,6 +196,7 @@ class Model:
             finally:
                 # Clean up the connection
                 connection.close()
+
 
 if __name__ == '__main__':
     model = Model()
@@ -174,6 +215,8 @@ if __name__ == '__main__':
     model.set_all_servos_default
     # model.update_IMU()
     # model.start_gcs_connection()
+
+
 
 """
         for us in range(1100, 1900, 50):
