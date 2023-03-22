@@ -151,10 +151,35 @@ class Model:
                 else:
                     self.set_servo(channel, value)
                     print("Set servo command processed")
-
-
-                
-            
+                    return
+            elif(cmd_info[1] == "a2"): #angle 2
+                channel = 10
+                try:
+                    value = self.get_angle_pwm(cmd_info[2].float())
+                except:
+                    print("Could not parse angle value, try an actual number")
+                    return
+                if(value == -1):
+                    print("Could not convert angle value to pwm, leaving at original value")
+                    return
+                else:
+                    self.set_servo(channel, value)
+                    print("Set servo command processed")
+                    return
+            elif(cmd_info[1] == "a3"): #angle 3
+                channel = 10
+                try:
+                    value = self.get_angle_pwm(cmd_info[2].float())
+                except:
+                    print("Could not parse angle value, try an actual number")
+                    return
+                if(value == -1):
+                    print("Could not convert angle value to pwm, leaving at original value")
+                    return
+                else:
+                    self.set_servo(channel, value)
+                    print("Set servo command processed")
+                    return    
 
     
     def start_gcs_connection(self):
@@ -162,11 +187,11 @@ class Model:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # Bind the socket to a specific address and port
-        server_address = ('0.0.0.0', 5000)
+        server_address = ('', 5000) #server_address = ('0.0.0.0', 5000)
         server_socket.bind(server_address)
 
         # Listen for incoming connections
-        server_socket.listen(1)
+        server_socket.listen(4)
         print('Server is listening on {}:{}'.format(*server_address))
 
         while True:

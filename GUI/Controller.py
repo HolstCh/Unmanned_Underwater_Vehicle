@@ -1,5 +1,8 @@
 import View
 import Model
+import socket
+from time import sleep
+from threading import Thread
 
 
 class Controller():
@@ -15,6 +18,7 @@ class Controller():
         self.maxAngle = 90
         self.minAngle = -90
         self.model = Model()
+        self.client_socket = None
         return
 
     def updateThrust(self, num, value):
@@ -45,5 +49,27 @@ class Controller():
             print("cannot set thruster")                
         return
     
-    def sendToVehicle(self, component, value):      
+    def sendToVehicle(self, command):
+        self.client_socket.sendall(str.encode(command))
+        data = self.client_socket.recv(1024)
+        print(f"Received '{data!r}' from server! ")      
+        return
+    
+    def start_gcs_connection(self):
+        # Create a TCP/IP socket
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Bind the socket to a specific address and port
+        client_address = ('0.0.0.0', 5000)
+        try:
+            self.client_socket.connect(client_address)
+        except:
+            print("Could not connect to server, quitting")
+        return
+    
+    def end_gcs_connection(self):
+        try:
+           self.client_socket.close()
+        except:
+            print("could not close socket properly")
         return
