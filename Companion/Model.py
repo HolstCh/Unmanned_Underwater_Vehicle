@@ -128,13 +128,22 @@ class Model:
         else:
             print("Could not convert the invalid angle value, returning current value")
             return -1
+    
+    def get_gripper_pwm(self, state):
+        if(state == "open"):
+            return 1800
+        elif(state == "closed"):
+            return 2400
+        else:
+            print("could not parse gripper pwm input, returning current state")
+            return -1
 
 
     def parse_command(self, command):
         #split the command by spaces
         cmd_info = command.spilt()
         #If the first block is not " *** ", reject the command
-        if cmd_info[0] != "***":
+        if cmd_info[0] != "***" or cmd_info[3] != "***":
             print("Could not parse command, command rejected")
             return 
         else: #scan for gripper, servo, or thruster requested
@@ -153,7 +162,7 @@ class Model:
                     print("Set servo command processed")
                     return
             elif(cmd_info[1] == "a2"): #angle 2
-                channel = 10
+                channel = 11
                 try:
                     value = self.get_angle_pwm(cmd_info[2].float())
                 except:
@@ -167,7 +176,7 @@ class Model:
                     print("Set servo command processed")
                     return
             elif(cmd_info[1] == "a3"): #angle 3
-                channel = 10
+                channel = 12
                 try:
                     value = self.get_angle_pwm(cmd_info[2].float())
                 except:
@@ -179,7 +188,21 @@ class Model:
                 else:
                     self.set_servo(channel, value)
                     print("Set servo command processed")
-                    return    
+                    return
+            elif(cmd_info[1] == "g1"): #gripper 1
+                channel = 13
+                try:
+                    value = self.get_gripper_pwm(cmd_info[2].float())
+                except:
+                    print("Could not parse gripper state request, try 'open' or 'closed'")
+                    return
+                if(value == -1):
+                    print("Could not convert gripper state request to pwm, leaving at original state")
+                    return
+                else:
+                    self.set_servo(channel, value)
+                    print("Set servo command processed")
+                    return      
 
     
     def start_gcs_connection(self):

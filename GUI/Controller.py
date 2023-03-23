@@ -73,3 +73,7 @@ class Controller():
         except:
             print("could not close socket properly")
         return
+    
+    def createCommand(self, comp, value):
+        cmd = "*** " + str(comp) + " " + str(value) + " ***"
+        return cmd
