@@ -130,13 +130,13 @@ class Model:
             return -1
     
     def get_gripper_pwm(self, state):
-        if(state == "open"):
-            return 1800
-        elif(state == "closed"):
-            return 2400
+        if(state == "open"): #range is 1530 < value < 1900
+            return 1700
+        elif(state == "closed"): #range is 1100 < value < 1470
+            return 1300
         else:
             print("could not parse gripper pwm input, returning current state")
-            return -1
+            return 1500
 
 
     def parse_command(self, command):
@@ -159,7 +159,7 @@ class Model:
                     return
                 else:
                     self.set_servo(channel, value)
-                    print("Set servo command processed")
+                    print("Set servo command processed - a1")
                     return
             elif(cmd_info[1] == "a2"): #angle 2
                 channel = 11
@@ -173,7 +173,7 @@ class Model:
                     return
                 else:
                     self.set_servo(channel, value)
-                    print("Set servo command processed")
+                    print("Set servo command processed - a2")
                     return
             elif(cmd_info[1] == "a3"): #angle 3
                 channel = 12
@@ -187,7 +187,7 @@ class Model:
                     return
                 else:
                     self.set_servo(channel, value)
-                    print("Set servo command processed")
+                    print("Set servo command processed - a3")
                     return
             elif(cmd_info[1] == "g1"): #gripper 1
                 channel = 13
@@ -196,12 +196,12 @@ class Model:
                 except:
                     print("Could not parse gripper state request, try 'open' or 'closed'")
                     return
-                if(value == -1):
+                if(value == 1500):
                     print("Could not convert gripper state request to pwm, leaving at original state")
                     return
                 else:
                     self.set_servo(channel, value)
-                    print("Set servo command processed")
+                    print("Set servo command processed - g1")
                     return      
 
     
