@@ -8,7 +8,7 @@ import os
 class Autopilot:
     def __init__(self, master):
         self.master = master
-    
+
     def read_params(self):
         self.master.mav.param_request_list_send(
         self.master.target_system, self.master.target_component
@@ -56,6 +56,12 @@ class Autopilot:
     def set_config(self):
         # set version to Mavlink 2
         os.environ['MAVLINK20'] = '1'
+        # disable servo functions to use MAV_CMD_DO_SET_SERVO
+        self.master.SERVO10_FUNCTION = 0 
+        self.master.SERVO11_FUNCTION = 0
+        self.master.SERVO12_FUNCTION = 0
+        self.master.SERVO13_FUNCTION = 0
+        self.master.SERVO14_FUNCTION = 0
 
     def set_mode(self, mode):
         # Check if mode is available
