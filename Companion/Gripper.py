@@ -1,6 +1,6 @@
 class Gripper:
-    # recommended pwm values are the following: 1100: closed state, 1100: closed/default, 1500: open state
-    def __init__(self, master, servo_n, pwm_range=[1100,1100,1500]):
+    # recommended pwm values are the following: closed state: 1100-1470, default (previous state): 1500 open state: 1530-1900
+    def __init__(self, master, servo_n, pwm_range=[1200, 1500, 1800]):
         self.master = master
         self.servo_n = servo_n
         self.pwm_range = pwm_range
