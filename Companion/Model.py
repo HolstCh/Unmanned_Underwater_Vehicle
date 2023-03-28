@@ -7,6 +7,26 @@ from Gripper import Gripper
 from Mavlink import Mavlink
 from pymavlink import mavutil
 
+# configurations for each electronic components in case of component or channel (pin) change; all values in program will change:
+
+# pwm ranges for each servo: [min, default, max]
+LEFT_SERVO_PWM_RANGE = [900,1500,2100]
+RIGHT_SERVO_PWM_RANGE = [900,1500,2100]
+TAIL_SERVO_PWM_RANGE = [900,1500,2100]
+
+# channels for each servo (AUX pwm output pins):
+LEFT_SERVO_CHANNEL = 10
+RIGHT_SERVO_CHANNEL = 11
+TAIL_SERVO_CHANNEL = 12
+
+# pwm ranges for each gripper: [min (closed state), default (previous state), max (open state)]
+LEFT_GRIPPER_PWM_RANGE = [1200, 1500, 1800]
+RIGHT_GRIPPER_PWM_RANGE = [1200, 1500, 1800]
+
+# channels for each gripper (AUX pwm output pins):
+LEFT_GRIPPER_CHANNEL = 13
+RIGHT_GRIPPER_CHANNEL = 14
+
 class Model:
     def __init__(self):
        self.gcs_connection = None
@@ -17,17 +37,17 @@ class Model:
     # AUX channels are channels 9-16
     def instantiate_servos(self):
         # create a Servo instance on servo_10 (AUX output 2 which is the same as servo output channel 10)
-        self.servo_left = Servo(10)
+        self.servo_left = Servo(LEFT_SERVO_CHANNEL, LEFT_SERVO_PWM_RANGE)
         # create a Servo instance on servo_11 (AUX output 3 which is the same as servo output channel 11)
-        self.servo_right = Servo(11)
+        self.servo_right = Servo(RIGHT_SERVO_CHANNEL, RIGHT_SERVO_PWM_RANGE)
         # create a Servo instance on servo_12 (AUX output 4 which is the same as servo output channel 12)
-        self.servo_tail = Servo(12)
+        self.servo_tail = Servo(TAIL_SERVO_CHANNEL, TAIL_SERVO_PWM_RANGE)
     
     def instantiate_grippers(self):
         # create a Gripper instance on gripper_13 (AUX output 5 which is the same as gripper output channel 13)
-        self.gripper_left = Gripper(13)
+        self.gripper_left = Gripper(LEFT_GRIPPER_CHANNEL, LEFT_GRIPPER_PWM_RANGE)
         # create a Gripper instance on gripper_14 (AUX output 6 which is the same as gripper output channel 14)
-        self.gripper_right = Gripper(14)
+        self.gripper_right = Gripper(RIGHT_GRIPPER_CHANNEL, RIGHT_GRIPPER_PWM_RANGE)
 
     def start_autopilot_connection(self):
         # instantiate Mavlink object and pass connection data to establish mavlink connection to autopilot through serial
@@ -60,7 +80,7 @@ class Model:
         # set flight mode: ['STABILIZE', 'ACRO', 'ALT_HOLD', 'AUTO', 'GUIDED', 'CIRCLE', 'SURFACE', 'POSHOLD', 'MANUAL']
         self.autopilot.set_mode(mode)
 
-    def set_servo(self, channel, pwm):
+    def set_servo_pwm(self, channel, pwm):
         if channel == self.servo_left.servo_n:
             print(channel, pwm)
             self.autopilot.set_servo(self.servo_left.servo_n, pwm)
@@ -73,6 +93,17 @@ class Model:
         else:
             print("Error: servo instances are only available on AUX outputs: " +  str(self.servo_left.servo_n-8) + ", " + str(self.servo_right.servo_n-8) + ", " + str(self.servo_tail.servo_n-8) + "/channels: " + 
                   str(self.servo_left.servo_n) + ", " + str(self.servo_right.servo_n) + ", " + str(self.servo_tail.servo_n))
+    
+    def set_gripper_pwm(self, channel, pwm):
+        if channel == self.gripper_left.gripper_n:
+            print(channel, pwm)
+            self.autopilot.set_servo(self.gripper_left.gripper_n, pwm)
+        elif channel == self.gripper_right.gripper_n:
+            print(channel, pwm)
+            self.autopilot.set_servo(self.gripper_right.gripper_n, pwm)
+        else:
+            print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
+                  str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
 
     def set_all_servos_default(self):
         self.autopilot.set_servo(self.servo_left.servo_n, self.servo_left.default)
@@ -82,10 +113,10 @@ class Model:
     def open_gripper(self, channel):
         if channel == self.gripper_left.gripper_n:
             print(channel, self.gripper_left.max)
-            self.autopilot.set_servo(self.gripper_left.gripper_n, self.gripper_left.max)
+            self.set_gripper(self.gripper_left.gripper_n, self.gripper_left.max)
         elif channel == self.gripper_right.gripper_n:
             print(channel, self.gripper_right.max)
-            self.autopilot.set_servo(self.gripper_right.gripper_n, self.gripper_right.max)
+            self.set_gripper(self.gripper_right.gripper_n, self.gripper_right.max)
         else:
             print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
                   str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
@@ -93,10 +124,10 @@ class Model:
     def close_gripper(self, channel):
         if channel == self.gripper_left.gripper_n:
             print(channel, self.gripper_left.min)
-            self.autopilot.set_servo(self.gripper_left.gripper_n, self.gripper_left.min)
+            self.set_gripper(self.gripper_left.gripper_n, self.gripper_left.min)
         elif channel == self.gripper_right.gripper_n:
             print(channel, self.gripper_right.min)
-            self.autopilot.set_servo(self.gripper_right.gripper_n, self.gripper_right.min)
+            self.set_gripper(self.gripper_right.gripper_n, self.gripper_right.min)
         else:
             print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
                   str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
@@ -115,15 +146,28 @@ class Model:
         self.thread = Thread(target=self.update_IMU_loop, daemon=True)
         self.thread.start()
 
-    def get_angle_pwm(self, angle):
+    def get_angle_pwm(self, percent, channel):
+        if channel == self.servo_left.servo_n:
+            return (self.servo_left.min + (percent*(self.servo_left.max-self.servo_left.min)))
+        elif channel == self.servo_right.servo_n:
+            return (self.servo_right.min + (percent*(self.servo_right.max-self.servo_right.min)))
+        elif channel == self.servo_tail.servo_n:
+            return (self.servo_tail.min + (percent*(self.servo_tail.max-self.servo_tail.min)))
+        else:
+            print("Could not convert the invalid angle value, returning current value")
+            return -1
+
+        """
         conv_factor = 1000
         if(angle < 0 and angle >= -90):
+            print(-1*conv_factor*angle)
             return -1*conv_factor*angle
         elif(angle >= 0 and angle <= 90):
             return conv_factor*angle
         else:
             print("Could not convert the invalid angle value, returning current value")
             return -1
+        """
 
     def get_gripper_pwm(self, state):
         if(state == "open"): #range is 1530 < value < 1900
@@ -137,50 +181,79 @@ class Model:
     def parse_command(self, command):
         #split the command by spaces
         cmd_info = command.split()
-        #If the first block is not " *** ", reject the command
-        if cmd_info[0] != "***":
+        #If the first and second block is not "***", reject the command
+        if cmd_info[0] != "***" and cmd_info[1] != "***":
             print("Could not parse command, command rejected")
             return 
         else: #scan for gripper, servo, or thruster requested
-            if(cmd_info[1] == "a1"): #angle 1
-                try:
-                    value = self.get_angle_pwm(cmd_info[2].float())
-                except:
-                    print("Could not parse angle value, try an actual number")
-                    return
-                if(value == -1):
-                    print("Could not convert angle value to pwm, leaving at original value")
-                    return
-                else:
-                    self.set_servo(self.servo_left.servo_n, value)
-                    print("Set servo command processed")
-                    return
-            elif(cmd_info[1] == "a2"): #angle 2
-                try:
-                    value = self.get_angle_pwm(cmd_info[2].float())
-                except:
-                    print("Could not parse angle value, try an actual number")
-                    return
-                if(value == -1):
-                    print("Could not convert angle value to pwm, leaving at original value")
-                    return
-                else:
-                    self.set_servo(self.servo_right.servo_n, value)
-                    print("Set servo command processed")
-                    return
-            elif(cmd_info[1] == "a3"): #angle 3
-                try:
-                    value = self.get_angle_pwm(cmd_info[2].float())
-                except:
-                    print("Could not parse angle value, try an actual number")
-                    return
-                if(value == -1):
-                    print("Could not convert angle value to pwm, leaving at original value")
-                    return
-                else:
-                    self.set_servo(self.servo_tail.servo_n, value)
-                    print("Set servo command processed")
-                    return    
+            end = len(cmd_info)
+            for i in range(2, end, 1):
+                if i%2 == 1:
+                    i=i+1
+                    continue
+                if i%2 == 0:
+                    if(cmd_info[i] == "a1"): #angle 1
+                        try:
+                            value = self.get_angle_pwm(float(cmd_info[i+1]), self.servo_left.servo_n)
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            print(value)
+                            self.set_servo_pwm(self.servo_left.servo_n, int(value))
+                            print("Set servo command processed")
+                    elif(cmd_info[i] == "a2"): #angle 2
+                        try:
+                            value = self.get_angle_pwm(float(cmd_info[i+1]), self.servo_right.servo_n)
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            self.set_servo_pwm(self.servo_right.servo_n, int(value))
+                            print("Set servo command processed")
+                    elif(cmd_info[i] == "a3"): #angle 3
+                        try:
+                            value = self.get_angle_pwm(float(cmd_info[i+1]), self.servo_tail.servo_n)
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            self.set_servo_pwm(self.servo_tail.servo_n, int(value))
+                            print("Set servo command processed")
+                    elif(cmd_info[i] == "g1"): # left gripper
+                        try:
+                            value = self.get_gripper_pwm(cmd_info[i+1])
+                            print(value)
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            self.set_gripper_pwm(self.gripper_left.gripper_n, value)
+                            print("Set servo command processed")
+                    elif(cmd_info[i] == "g2"): # right gripper 
+                        try:
+                            value = self.get_gripper_pwm(cmd_info[i+1])
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            self.set_gripper_pwm(self.gripper_right.gripper_n, value)
+                            print("Set servo command processed")
 
     
     def start_gcs_connection(self):
@@ -210,8 +283,20 @@ class Model:
                 while True:
                     data = connection.recv(1024)
                     print('Received {!r}'.format(data))
+                    print(data.decode())
                     # send command for parsing
-                    # self.parse_command(self, data)
+                    self.parse_command(data.decode())
+                    # just for checking values changing:
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
+                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
                     if data:
                         print('Sending data back to the client')
                         connection.sendall(data)
@@ -230,14 +315,15 @@ if __name__ == '__main__':
     model.instantiate_grippers()
     # model.set_flight_mode("MANUAL")
     # model.arm()
-    model.set_servo(model.servo_left.servo_n, 1610)
+    """
+    model.set_servo(model.servo_left.servo_n, 1613)
     model.set_servo(model.servo_right.servo_n, 1611)
     model.set_servo(model.servo_tail.servo_n, 1612)
     model.close_gripper(model.gripper_left.gripper_n)
     model.open_gripper(model.gripper_right.gripper_n)
-    model.autopilot.read_param('SERVO_OUTPUT_RAW')
+    """
     # model.update_IMU()
-    # model.start_gcs_connection()
+    model.start_gcs_connection()
 
 """
         for us in range(1100, 1900, 50):
