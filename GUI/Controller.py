@@ -5,7 +5,7 @@ from time import sleep
 from threading import Thread
 
 
-class Controller():
+class Controller:
     def __init__(self):
         self.thrust1Power = 0
         self.thrust2Power = 0
@@ -17,7 +17,7 @@ class Controller():
         self.minThrust = 0
         self.maxAngle = 90
         self.minAngle = -90
-        self.model = Model()
+        # self.model = Model()
         self.client_socket = None
         return
 
@@ -32,7 +32,7 @@ class Controller():
             else:
                 print("cannot set thruster")
         else:
-            print("cannot set thruster")                
+            print("cannot set thruster")
         return
 
     def updateAngle(self, num, value):
@@ -46,34 +46,38 @@ class Controller():
             else:
                 print("cannot set thruster")
         else:
-            print("cannot set thruster")                
+            print("cannot set thruster")
         return
-    
-    def sendToVehicle(self, command):
+
+    def sendToModel(self, command):
         self.client_socket.sendall(str.encode(command))
         data = self.client_socket.recv(1024)
-        print(f"Received '{data!r}' from server! ")      
+        print(f"Received '{data!r}' from server! ")
         return
-    
+
+    def end_gcs_connection(self):
+        try:
+            self.client_socket.close()
+        except:
+            print("could not close socket properly")
+        return
+
     def start_gcs_connection(self):
         # Create a TCP/IP socket
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # Bind the socket to a specific address and port
-        client_address = ('0.0.0.0', 5000)
+        client_address = (socket.gethostbyname("raspberrypi.local"), 5000)
         try:
             self.client_socket.connect(client_address)
         except:
             print("Could not connect to server, quitting")
-        return
-    
-    def end_gcs_connection(self):
-        try:
-           self.client_socket.close()
-        except:
-            print("could not close socket properly")
-        return
-    
+
     def createCommand(self, comp, value):
-        cmd = "*** " + str(comp) + " " + str(value) + " ***"
+        cmd = "*** *** " + str(comp) + " " + str(value) + " ***"
+        return cmd
+
+    def create_commands(self, comp1, value1, comp2, value2, comp3, value3, comp4, value4, comp5, value5):
+        cmd = "*** *** " + str(comp1) + " " + str(value1) + " " + str(comp2) + " " + str(value2) + " " + str(comp3) \
+              + " " + str(value3) + " " + str(comp4) + " " + str(value4) + " " + str(comp5) + " " + str(value5) + " ***"
         return cmd
