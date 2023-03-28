@@ -87,8 +87,8 @@ class View(CTk.CTkFrame):
         tail_thruster_label.grid(column=3, row=10, padx=10)
         self.tail_thruster_slider.grid(column=3, row=11, rowspan=3, padx=10)
 
-        self.controller = Controller()
-        self.controller.start_gcs_connection()
+        #self.controller = Controller()
+        #self.controller.start_gcs_connection()
 
     def get_left_servo(self, event):
         print(self.left_servo_slider.get())

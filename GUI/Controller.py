@@ -1,5 +1,4 @@
 import View
-import Model
 import socket
 from time import sleep
 from threading import Thread
@@ -17,7 +16,6 @@ class Controller:
         self.minThrust = 0
         self.maxAngle = 90
         self.minAngle = -90
-        # self.model = Model()
         self.client_socket = None
         return
 
