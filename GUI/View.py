@@ -1,6 +1,7 @@
 import customtkinter as CTk
 from Controller import Controller
 import tkinter as Tk
+import numpy
 # import pickle
 
 
@@ -18,7 +19,6 @@ class View(CTk.CTkFrame):
         tail_servo_label = CTk.CTkLabel(master=root, text="Tail Thruster Angle", anchor="w")
         tail_thruster_label = CTk.CTkLabel(master=root, text="Tail Thruster", anchor="w")
         motor_status_label = CTk.CTkLabel(master=root, text="Motor Status", anchor="w")
-        flight_mode_label = CTk.CTkLabel(master=root, text="Flight Mode", anchor="w")
 
         # slider widgets
         self.left_servo_slider = CTk.CTkSlider(master=root, from_=0, to=1, orientation="vertical")
@@ -34,11 +34,19 @@ class View(CTk.CTkFrame):
         self.tail_thruster_slider = CTk.CTkSlider(master=root, from_=0, to=1, orientation="vertical")
         self.tail_thruster_slider.bind("<ButtonRelease-1>", self.get_tail_thruster)
 
+        #Dynamic Labels
+        self.left_servo_value = CTk.StringVar(value="0.0")
+        self.right_servo_value = CTk.StringVar(value="0.0")
+        self.tail_servo_value = CTk.StringVar(value="0.0")
+        self.left_servo_label_value = CTk.CTkLabel(master=root, textvariable=self.left_servo_value, anchor="w")
+        self.right_servo_label_value = CTk.CTkLabel(master=root, textvariable=self.right_servo_value, anchor="w")
+        self.tail_servo_label_value = CTk.CTkLabel(master=root, textvariable=self.tail_servo_value, anchor="w")
+
         # combo box widgets
         motor_status = CTk.CTkOptionMenu(master=root, values=["Disarmed", "Armed"])
-        flight_mode = CTk.CTkOptionMenu(master=root,
-                                        values=["Manual", "Stabilize", "Acro", "Altitude Hold", "Auto", "Guided",
-                                                "Circle", "Surface", "Position Hold"])
+        #flight_mode = CTk.CTkOptionMenu(master=root,
+        #                                values=["Manual", "Stabilize", "Acro", "Altitude Hold", "Auto", "Guided",
+        #                                        "Circle", "Surface", "Position Hold"])
         # switch widget variables
         self.left_gripper_state = CTk.StringVar(value="open")
         self.right_gripper_state = CTk.StringVar(value="open")
@@ -60,8 +68,8 @@ class View(CTk.CTkFrame):
         motor_status_label.grid(column=0, row=0, pady=15)
         motor_status.grid(column=0, row=1, sticky="N", padx=15)
 
-        flight_mode_label.grid(column=1, row=0, pady=15)
-        flight_mode.grid(column=1, row=1, sticky="N", padx=15)
+        #flight_mode_label.grid(column=1, row=0, pady=15)
+        #flight_mode.grid(column=1, row=1, sticky="N", padx=15)
 
         self.reset_state.grid(column=2, row=0)
         self.previous_state.grid(column=3, row=0)
@@ -71,37 +79,47 @@ class View(CTk.CTkFrame):
 
         left_servo_label.grid(column=2, row=2)
         self.left_servo_slider.grid(column=2, row=3, rowspan=3)
+        self.left_servo_label_value.grid(column=2, row=4, rowspan=3)
 
         left_thruster_label.grid(column=3, row=2, padx=10)
         self.left_thruster_slider.grid(column=3, row=3, rowspan=3, padx=10)
 
         right_servo_label.grid(column=2, row=6)
         self.right_servo_slider.grid(column=2, row=7, rowspan=3)
+        self.right_servo_label_value.grid(column=2, row=8, rowspan=3)
 
         right_thruster_label.grid(column=3, row=6, padx=10)
         self.right_thruster_slider.grid(column=3, row=7, rowspan=3, padx=10)
 
         tail_servo_label.grid(column=2, row=10)
         self.tail_servo_slider.grid(column=2, row=11, rowspan=3)
+        self.tail_servo_label_value.grid(column=2, row=12, rowspan=3)
 
         tail_thruster_label.grid(column=3, row=10, padx=10)
         self.tail_thruster_slider.grid(column=3, row=11, rowspan=3, padx=10)
 
+
         #self.controller = Controller()
         #self.controller.start_gcs_connection()
 
+    def convert_to_angle(self, value):
+        return numpy.rint(-90 + value*(180))
+
     def get_left_servo(self, event):
         print(self.left_servo_slider.get())
+        self.left_servo_value.set(self.convert_to_angle(self.left_servo_slider.get()))
         command = self.controller.createCommand("a1", self.left_servo_slider.get())
         self.controller.sendToModel(command)
 
     def get_right_servo(self, event):
         print(self.right_servo_slider.get())
+        self.right_servo_value.set(self.convert_to_angle(self.right_servo_slider.get()))
         command = self.controller.createCommand("a2", self.right_servo_slider.get())
         self.controller.sendToModel(command)
 
     def get_tail_servo(self, event):
         print(self.tail_servo_slider.get())
+        self.tail_servo_value.set(self.convert_to_angle(self.tail_servo_slider.get()))
         command = self.controller.createCommand("a3", self.tail_servo_slider.get())
         self.controller.sendToModel(command)
 
@@ -131,6 +149,9 @@ class View(CTk.CTkFrame):
         self.left_thruster_slider.set(0.5)
         self.right_thruster_slider.set(0.5)
         self.tail_thruster_slider.set(0.5)
+        self.right_servo_value.set(self.convert_to_angle(self.right_servo_slider.get()))
+        self.left_servo_value.set(self.convert_to_angle(self.left_servo_slider.get()))
+        self.tail_servo_value.set(self.convert_to_angle(self.tail_servo_slider.get()))
         self.left_gripper_state.set("closed")
         self.right_gripper_state.set("closed")
         commands = self.controller.create_commands("a1", self.left_servo_slider.get(), "a2",
