@@ -136,6 +136,14 @@ class View(CTk.CTkFrame):
         #self.controller = Controller()
         #self.controller.start_gcs_connection()
 
+    def update_IMU_labels(self, xvalue, yvalue, zvalue):
+        x_accel = "X-Direction Acceleration: " + str(xvalue) + " m/s\N{SUPERSCRIPT TWO}"
+        y_accel = "Y-Direction Acceleration: " + str(yvalue) + " m/s\N{SUPERSCRIPT TWO}"
+        z_accel = "Z-Direction Acceleration: " + str(zvalue) + " m/s\N{SUPERSCRIPT TWO}"
+        self.x_accel_value.set(x_accel)
+        self.y_accel_value.set(y_accel)
+        self.z_accel_value.set(z_accel)
+
     def convert_to_angle(self, value):
         return numpy.rint(-90 + value*(180))
     
@@ -152,6 +160,7 @@ class View(CTk.CTkFrame):
         angle = self.convert_to_angle(self.left_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.left_servo_value.set(to_display)
+        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a1", self.left_servo_slider.get())
         self.controller.sendToModel(command)
 
@@ -160,6 +169,7 @@ class View(CTk.CTkFrame):
         angle = self.convert_to_angle(self.right_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.right_servo_value.set(to_display)
+        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a2", self.right_servo_slider.get())
         self.controller.sendToModel(command)
 
@@ -168,6 +178,7 @@ class View(CTk.CTkFrame):
         angle = self.convert_to_angle(self.tail_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.tail_servo_value.set(to_display)
+        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a3", self.tail_servo_slider.get())
         self.controller.sendToModel(command)
 
