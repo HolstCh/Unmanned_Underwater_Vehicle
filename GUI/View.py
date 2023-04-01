@@ -135,6 +135,7 @@ class View(CTk.CTkFrame):
 
         #self.controller = Controller()
         #self.controller.start_gcs_connection()
+        #self.controller.start_IMU_connection()
 
     def update_IMU_labels(self, xvalue, yvalue, zvalue):
         x_accel = "X-Direction Acceleration: " + str(xvalue) + " m/s\N{SUPERSCRIPT TWO}"
