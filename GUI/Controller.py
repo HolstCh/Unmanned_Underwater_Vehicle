@@ -17,6 +17,7 @@ class Controller:
         self.maxAngle = 90
         self.minAngle = -90
         self.client_socket = None
+        self.UDP_socket = None
         return
 
     def updateThrust(self, num, value):
@@ -52,6 +53,10 @@ class Controller:
         data = self.client_socket.recv(1024)
         print(f"Received '{data!r}' from server! ")
         return
+    
+    def parse_IMU_data(self, raw_imu):
+        data = raw_imu.split(" ")
+
 
     def end_gcs_connection(self):
         try:
@@ -70,6 +75,27 @@ class Controller:
             self.client_socket.connect(client_address)
         except:
             print("Could not connect to server, quitting")
+
+    def get_IMU_loop(self):
+        while True:
+            IMU_data = self.UDP_socket.recvfrom(1024)
+            IMU_msg = "{}".format(IMU_data)
+            #self.parse_IMU_data(IMU_msg)
+            print(IMU_msg)
+            #self.UDP_socket.sendto(str.encode("Received Data"))
+    
+    def start_IMU_connection(self):
+        #Create a UDP Server socket
+        self.UDP_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        server_address = ("172.28.96.1", 6000)
+        self.UDP_socket.bind(server_address)
+        print("UDP Server started")
+        try:
+            self.thread = Thread(target=self.get_IMU_loop, daemon=True)
+            self.thread.start()
+        except:
+            print("Could not start IMU loop")
+
 
     def createCommand(self, comp, value):
         cmd = "*** *** " + str(comp) + " " + str(value) + " ***"

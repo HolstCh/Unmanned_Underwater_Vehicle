@@ -32,6 +32,7 @@ class Model:
        self.gcs_connection = None
        self.gcs_address = None
        self.autopilot = None
+       self.UDP_client = None
        self.IMU_data = {}
 
     # AUX channels are channels 9-16
@@ -139,12 +140,16 @@ class Model:
         while True:
             self.IMU_data = self.autopilot.get_param_dict("RAW_IMU")
             print(self.IMU_data)
+            self.UDP_client.sendto(str.encode(self.IMU_data), ("172.28.96.1", 6000))
             sleep(1)
     
     def update_IMU(self):
         # create thread to and assign it to update IMU data every 1s until program exits for real time data display
         self.thread = Thread(target=self.update_IMU_loop, daemon=True)
         self.thread.start()
+
+    def start_UDP_socket(self):
+        self.UDP_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
     def get_angle_pwm(self, percent, channel):
         if channel == self.servo_left.servo_n:
