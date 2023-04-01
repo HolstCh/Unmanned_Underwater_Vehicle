@@ -150,6 +150,7 @@ class Model:
 
     def start_UDP_socket(self):
         self.UDP_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self.update_IMU()
 
     def get_angle_pwm(self, percent, channel):
         if channel == self.servo_left.servo_n:
@@ -327,7 +328,7 @@ if __name__ == '__main__':
     model.close_gripper(model.gripper_left.gripper_n)
     model.open_gripper(model.gripper_right.gripper_n)
     """
-    # model.update_IMU()
+    model.start_UDP_socket()
     model.start_gcs_connection()
 
 """
