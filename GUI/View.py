@@ -3,6 +3,7 @@ from Controller import Controller
 import tkinter as Tk
 import numpy
 from PIL import Image, ImageTk
+import os
 # import pickle
 
 
@@ -12,11 +13,11 @@ class View(CTk.CTkFrame):
         super().__init__(master, **kwargs)
         CTk.set_appearance_mode("dark")
 
-        robotarium = CTk.CTkImage(Image.open(r"C:\Users\latti\Documents\GitHub\DeepFlightENEL500\GUI\robotarium.png"), size=(200,100))
+        robotarium = CTk.CTkImage(Image.open(r"GUI\robotarium.png"), size=(220,100))
         robotarium_label = CTk.CTkLabel(master=root, text= "", image=robotarium)
         robotarium_label.image = robotarium
 
-        uofc = CTk.CTkImage(Image.open(r"C:\Users\latti\Documents\GitHub\DeepFlightENEL500\GUI\uofc.png"), size=(180,100))
+        uofc = CTk.CTkImage(Image.open(r"GUI\uofc.png"), size=(180,100))
         uofc_label = CTk.CTkLabel(master=root, text= "", image=uofc)
         uofc_label.image = uofc
 
@@ -51,6 +52,16 @@ class View(CTk.CTkFrame):
         self.right_servo_label_value = CTk.CTkLabel(master=root, textvariable=self.right_servo_value, anchor="w")
         self.tail_servo_label_value = CTk.CTkLabel(master=root, textvariable=self.tail_servo_value, anchor="w")
 
+        initial_xaccel = "X-Direction Acceleration: 0.0 " + "m/s\N{SUPERSCRIPT TWO}"
+        initial_yaccel = "Y-Direction Acceleration: 0.0 " + "m/s\N{SUPERSCRIPT TWO}"
+        initial_zaccel = "Z-Direction Acceleration: 0.0 " + "m/s\N{SUPERSCRIPT TWO}"
+        self.x_accel_value = CTk.StringVar(value=initial_xaccel)
+        self.y_accel_value = CTk.StringVar(value=initial_yaccel)
+        self.z_accel_value = CTk.StringVar(value=initial_zaccel)
+        self.x_accel_label = CTk.CTkLabel(master=root, textvariable=self.x_accel_value, anchor="w")
+        self.y_accel_label = CTk.CTkLabel(master=root, textvariable=self.y_accel_value, anchor="w")
+        self.z_accel_label = CTk.CTkLabel(master=root, textvariable=self.z_accel_value, anchor="w")
+
         self.left_thruster_value = CTk.StringVar(value="0.0 %")
         self.right_thruster_value = CTk.StringVar(value="0.0 %")
         self.tail_thruster_value = CTk.StringVar(value="0.0 %")
@@ -84,6 +95,11 @@ class View(CTk.CTkFrame):
         robotarium_label.grid(column=0, row=0, padx=10, pady=15)
         uofc_label.grid(column=4, row=0, pady=15)
 
+        #Acceleration value/label placement
+        self.x_accel_label.grid(column=0, row=2, padx=10, pady=15)
+        self.y_accel_label.grid(column=0, row=3, padx=10, pady=15)
+        self.z_accel_label.grid(column=0, row=4, padx=10, pady=0)
+        
         #flight_mode_label.grid(column=1, row=0, pady=15)
         #flight_mode.grid(column=1, row=1, sticky="N", padx=15)
 
