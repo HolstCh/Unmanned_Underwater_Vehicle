@@ -133,14 +133,16 @@ class View(CTk.CTkFrame):
         self.tail_thruster_slider.grid(column=3, row=7, rowspan=3, padx=10)
         self.tail_thruster_label_value.grid(column=3, row=8, rowspan=3, padx=10)
 
-        #self.controller = Controller()
+        IMU_dummy = r"{'mavpackettype': 'RAW_IMU', 'time_usec': 287026014, 'xacc': -91, 'yacc': 445, 'zacc': -2318, 'xgyro': -91, 'ygyro': -872, 'zgyro': -449, 'xmag': 0, 'ymag': 0, 'zmag': 0}"
+        
+        self.controller = Controller()
         #self.controller.start_gcs_connection()
-        #self.controller.start_IMU_connection()
+        #self.start_IMU_connection()
 
-    def update_IMU_labels(self, xvalue, yvalue, zvalue):
-        x_accel = "X-Direction Acceleration: " + str(xvalue) + " m/s\N{SUPERSCRIPT TWO}"
-        y_accel = "Y-Direction Acceleration: " + str(yvalue) + " m/s\N{SUPERSCRIPT TWO}"
-        z_accel = "Z-Direction Acceleration: " + str(zvalue) + " m/s\N{SUPERSCRIPT TWO}"
+    def update_IMU_labels(self):
+        x_accel = "X-Direction Acceleration: " + self.controller.getXaccel() + " m/s\N{SUPERSCRIPT TWO}"
+        y_accel = "Y-Direction Acceleration: " + self.controller.getYaccel() + " m/s\N{SUPERSCRIPT TWO}"
+        z_accel = "Z-Direction Acceleration: " + self.controller.getZaccel() + " m/s\N{SUPERSCRIPT TWO}"
         self.x_accel_value.set(x_accel)
         self.y_accel_value.set(y_accel)
         self.z_accel_value.set(z_accel)
@@ -161,55 +163,63 @@ class View(CTk.CTkFrame):
         angle = self.convert_to_angle(self.left_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.left_servo_value.set(to_display)
-        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
+        #self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a1", self.left_servo_slider.get())
         self.controller.sendToModel(command)
+        self.update_IMU_labels()
 
     def get_right_servo(self, event):
         print(self.right_servo_slider.get())
         angle = self.convert_to_angle(self.right_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.right_servo_value.set(to_display)
-        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
+        #self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a2", self.right_servo_slider.get())
         self.controller.sendToModel(command)
+        self.update_IMU_labels()
 
     def get_tail_servo(self, event):
         print(self.tail_servo_slider.get())
         angle = self.convert_to_angle(self.tail_servo_slider.get())
         to_display = str(angle) + u'\N{DEGREE SIGN}'
         self.tail_servo_value.set(to_display)
-        self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
+        #self.update_IMU_labels(numpy.random.randint(0, 15), numpy.random.randint(0, 15), numpy.random.randint(0, 15))
         command = self.controller.createCommand("a3", self.tail_servo_slider.get())
         self.controller.sendToModel(command)
+        self.update_IMU_labels()
 
     def get_left_thruster(self, event):
         print(self.left_thruster_slider.get())
         power = self.convert_to_power(self.left_thruster_slider.get())
         to_display = str(power) + " %"
         self.left_thruster_value.set(to_display)
+        self.update_IMU_labels()
 
     def get_right_thruster(self, event):
         print(self.right_thruster_slider.get())
         power = self.convert_to_power(self.right_thruster_slider.get())
         to_display = str(power) + " %"
         self.right_thruster_value.set(to_display)
+        self.update_IMU_labels()
 
     def get_tail_thruster(self, event):
         print(self.tail_thruster_slider.get())
         power = self.convert_to_power(self.tail_thruster_slider.get())
         to_display = str(power) + " %"
         self.tail_thruster_value.set(to_display)
+        self.update_IMU_labels()
 
     def get_left_gripper(self):
         print(self.left_gripper_state.get())
         command = self.controller.createCommand("g1", self.left_gripper_state.get())
         self.controller.sendToModel(command)
+        self.update_IMU_labels()
 
     def get_right_gripper(self):
         print(self.right_gripper_state.get())
         command = self.controller.createCommand("g2", self.right_gripper_state.get())
         self.controller.sendToModel(command)
+        self.update_IMU_labels()
 
     def set_state_default(self):
         self.left_servo_slider.set(0.5)
@@ -229,6 +239,7 @@ class View(CTk.CTkFrame):
                                                    "g1", self.left_gripper_state.get(),
                                                    "g2", self.left_gripper_state.get())
         self.controller.sendToModel(commands)
+        self.update_IMU_labels()
 
     def set_state_previous(self):
         self.left_gripper_state.set("closed")

@@ -17,8 +17,19 @@ class Controller:
         self.maxAngle = 90
         self.minAngle = -90
         self.client_socket = None
-        self.UDP_socket = None
+        self.x_accel = 0
+        self.y_accel = 0
+        self.z_accel = 0
         return
+
+    def getXaccel(self):
+        return self.x_accel
+
+    def getYaccel(self):
+        return self.y_accel
+
+    def getZaccel(self):
+        return self.z_accel
 
     def updateThrust(self, num, value):
         if value >= self.minThrust and value <= self.maxThrust:
@@ -48,15 +59,30 @@ class Controller:
             print("cannot set thruster")
         return
 
+    def parse_IMU_data(self, raw_imu):
+        data = raw_imu.split(", ")
+        #Retrieve accel values only
+        try:
+            xaccel_raw = data[2].split(": ")
+            xaccel = xaccel_raw[1]
+            yaccel_raw = data[3].split(": ")
+            yaccel = yaccel_raw[1] 
+            zaccel_raw = data[4].split(": ")
+            zaccel = zaccel_raw[1]
+            self.xaccel = xaccel
+            self.yaccel = yaccel
+            self.zaccel = zaccel
+            print("X-accel: " + xaccel + ", Y-accel: " + yaccel + ", Z-accel: " + zaccel)          
+        except:
+            print("could not retrieve IMU data from string")
+        #print(data)
+
     def sendToModel(self, command):
         self.client_socket.sendall(str.encode(command))
         data = self.client_socket.recv(1024)
         print(f"Received '{data!r}' from server! ")
+        self.parse_IMU_data(data)
         return
-    
-    def parse_IMU_data(self, raw_imu):
-        data = raw_imu.split(" ")
-
 
     def end_gcs_connection(self):
         try:
@@ -76,13 +102,15 @@ class Controller:
         except:
             print("Could not connect to server, quitting")
 
+    '''
     def get_IMU_loop(self):
         while True:
             IMU_data = self.UDP_socket.recvfrom(1024)
-            IMU_msg = "{}".format(IMU_data)
+            IMU_msg = "{}".format(IMU_data[0])
+            address = "{}".format(IMU_data[1])
             #self.parse_IMU_data(IMU_msg)
             print(IMU_msg)
-            #self.UDP_socket.sendto(str.encode("Received Data"))
+            self.UDP_socket.sendto(str.encode("Received Data"), address)
     
     def start_IMU_connection(self):
         #Create a UDP Server socket
@@ -95,7 +123,7 @@ class Controller:
             self.thread.start()
         except:
             print("Could not start IMU loop")
-
+    '''
 
     def createCommand(self, comp, value):
         cmd = "*** *** " + str(comp) + " " + str(value) + " ***"

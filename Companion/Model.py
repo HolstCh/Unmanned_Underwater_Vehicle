@@ -32,7 +32,6 @@ class Model:
        self.gcs_connection = None
        self.gcs_address = None
        self.autopilot = None
-       self.UDP_client = None
        self.IMU_data = {}
 
     # AUX channels are channels 9-16
@@ -137,12 +136,12 @@ class Model:
         return self.autopilot.get_param_dict(param)
     
     def update_IMU_loop(self):
-        while True:
+        #while True:
             self.IMU_data = self.autopilot.get_param_dict("RAW_IMU")
-            print(self.IMU_data)
-            self.UDP_client.sendto(str.encode(self.IMU_data), ("172.28.96.1", 6000))
-            sleep(1)
-    
+            return str(self.IMU_data)
+            #sleep(1)
+
+    '''   
     def update_IMU(self):
         # create thread to and assign it to update IMU data every 1s until program exits for real time data display
         self.thread = Thread(target=self.update_IMU_loop, daemon=True)
@@ -151,7 +150,7 @@ class Model:
     def start_UDP_socket(self):
         self.UDP_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.update_IMU()
-
+    '''
     def get_angle_pwm(self, percent, channel):
         if channel == self.servo_left.servo_n:
             return (self.servo_left.min + (percent*(self.servo_left.max-self.servo_left.min)))
@@ -198,6 +197,8 @@ class Model:
                     i=i+1
                     continue
                 if i%2 == 0:
+                    if(cmd_info[i] == "IMU"): #If it is IMU update command, simply return to the start_gcs_connection while loop to send back data
+                        return
                     if(cmd_info[i] == "a1"): #angle 1
                         try:
                             value = self.get_angle_pwm(float(cmd_info[i+1]), self.servo_left.servo_n)
@@ -304,8 +305,9 @@ class Model:
                     self.autopilot.read_param('SERVO_OUTPUT_RAW')
                     self.autopilot.read_param('SERVO_OUTPUT_RAW')
                     if data:
-                        print('Sending data back to the client')
-                        connection.sendall(data)
+                        print('Sending IMU data back to the client')
+                        IMU_data = self.update_IMU_loop()
+                        connection.sendall(str.encode(IMU_data))
                     else:
                         print('No more data from', client_address)
                         break
@@ -328,7 +330,6 @@ if __name__ == '__main__':
     model.close_gripper(model.gripper_left.gripper_n)
     model.open_gripper(model.gripper_right.gripper_n)
     """
-    model.start_UDP_socket()
     model.start_gcs_connection()
 
 """
