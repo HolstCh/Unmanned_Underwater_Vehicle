@@ -1,11 +1,13 @@
 import socket
-from time import sleep
+from time import sleep, time
 from threading import Thread
 from Autopilot import Autopilot
 from Servo import Servo
 from Gripper import Gripper
+from Thruster import Thruster
 from Mavlink import Mavlink
 from pymavlink import mavutil
+from smc import SMC
 
 # configurations for each electronic components in case of component or channel (pin) change; all values in program will change:
 
@@ -20,18 +22,22 @@ RIGHT_SERVO_CHANNEL = 11
 TAIL_SERVO_CHANNEL = 12
 
 # pwm ranges for each gripper: [min (closed state), default (previous state), max (open state)]
-LEFT_GRIPPER_PWM_RANGE = [1200, 1500, 1800]
-RIGHT_GRIPPER_PWM_RANGE = [1200, 1500, 1800]
+LEFT_GRIPPER_PWM_RANGE = [1200,1500,1800]
+RIGHT_GRIPPER_PWM_RANGE = [1200,1500,1800]
 
 # channels for each gripper (AUX pwm output pins):
 LEFT_GRIPPER_CHANNEL = 13
 RIGHT_GRIPPER_CHANNEL = 14
+
+# range for adjusting bidirectional speed of motor controller
+LEFT_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 
 class Model:
     def __init__(self):
        self.gcs_connection = None
        self.gcs_address = None
        self.autopilot = None
+       self.UDP_client = None
        self.IMU_data = {}
 
     # AUX channels are channels 9-16
@@ -49,6 +55,15 @@ class Model:
         # create a Gripper instance on gripper_14 (AUX output 6 which is the same as gripper output channel 14)
         self.gripper_right = Gripper(RIGHT_GRIPPER_CHANNEL, RIGHT_GRIPPER_PWM_RANGE)
 
+    def instantiate_thrusters(self):
+        self.thruster_left = Thruster(1, LEFT_THRUSTER_SPEED_RANGE)
+    
+    def start_motor_connection(self):
+        hi = 1
+        # self.mc = SMC('/dev/ttyUSB0', 115200)
+        # open serial port and exit safe mode
+        # self.mc.init()
+
     def start_autopilot_connection(self):
         # instantiate Mavlink object and pass connection data to establish mavlink connection to autopilot through serial
         mav_autopilot = Mavlink("/dev/ttyACM0", mavutil.mavlink.MAV_TYPE_SUBMARINE, mavutil.mavlink.MAV_AUTOPILOT_PX4, 
@@ -56,7 +71,7 @@ class Model:
 
         # instantiate Autopilot object, pass autopilot-mavlink connection data, and return Autopilot object to Model class
         self.autopilot = Autopilot(mav_autopilot.get_connection())
-    
+
         # send HEARTBEAT message repeatedly from Companion to Autopilot every 1s or else Autopilot goes into failsafe mode
         mav_autopilot.start_heartbeat()
 
@@ -104,7 +119,16 @@ class Model:
         else:
             print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
                   str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
-
+    
+    def set_thruster_speed(self, channel, speed):
+        if channel == self.thruster_left.thruster_n:
+            print(channel, speed)
+            #self.mc.speed(speed)
+            sleep(3)
+            #self.mc.speed(0)
+        else:
+            print("Error: thruster instance unavailable")
+    """
     def set_all_servos_default(self):
         self.autopilot.set_servo(self.servo_left.servo_n, self.servo_left.default)
         self.autopilot.set_servo(self.servo_right.servo_n, self.servo_right.default)
@@ -113,10 +137,10 @@ class Model:
     def open_gripper(self, channel):
         if channel == self.gripper_left.gripper_n:
             print(channel, self.gripper_left.max)
-            self.set_gripper(self.gripper_left.gripper_n, self.gripper_left.max)
+            self.set_gripper_pwm(self.gripper_left.gripper_n, self.gripper_left.max)
         elif channel == self.gripper_right.gripper_n:
             print(channel, self.gripper_right.max)
-            self.set_gripper(self.gripper_right.gripper_n, self.gripper_right.max)
+            self.set_gripper_pwm(self.gripper_right.gripper_n, self.gripper_right.max)
         else:
             print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
                   str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
@@ -124,13 +148,14 @@ class Model:
     def close_gripper(self, channel):
         if channel == self.gripper_left.gripper_n:
             print(channel, self.gripper_left.min)
-            self.set_gripper(self.gripper_left.gripper_n, self.gripper_left.min)
+            self.set_gripper_pwm(self.gripper_left.gripper_n, self.gripper_left.min)
         elif channel == self.gripper_right.gripper_n:
             print(channel, self.gripper_right.min)
-            self.set_gripper(self.gripper_right.gripper_n, self.gripper_right.min)
+            self.set_gripper_pwm(self.gripper_right.gripper_n, self.gripper_right.min)
         else:
             print("Error: gripper instances are only available on AUX outputs: " + str(self.gripper_left.gripper_n-8) + ", " + str(self.gripper_right.gripper_n-8) + "/channels: " +
                   str(self.gripper_left.gripper_n) + ", " + str(self.gripper_right.gripper_n))
+    """
 
     def get_data(self, param):
         return self.autopilot.get_param_dict(param)
@@ -138,10 +163,9 @@ class Model:
     def update_IMU_loop(self):
         #while True:
             self.IMU_data = self.autopilot.get_param_dict("RAW_IMU")
+            #print(self.IMU_data)
             return str(self.IMU_data)
-            #sleep(1)
-
-    '''   
+    """   
     def update_IMU(self):
         # create thread to and assign it to update IMU data every 1s until program exits for real time data display
         self.thread = Thread(target=self.update_IMU_loop, daemon=True)
@@ -150,7 +174,8 @@ class Model:
     def start_UDP_socket(self):
         self.UDP_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.update_IMU()
-    '''
+    """
+
     def get_angle_pwm(self, percent, channel):
         if channel == self.servo_left.servo_n:
             return (self.servo_left.min + (percent*(self.servo_left.max-self.servo_left.min)))
@@ -161,7 +186,23 @@ class Model:
         else:
             print("Could not convert the invalid angle value, returning current value")
             return -1
-
+    
+    def get_state_pwm(self, percent, channel):
+        if channel == self.gripper_left.gripper_n:
+            return (self.gripper_left.min + (percent*(self.gripper_left.max-self.gripper_left.min)))
+        elif channel == self.gripper_right.gripper_n:
+            return (self.gripper_right.min + (percent*(self.gripper_right.max-self.gripper_right.min)))
+        else:
+            print("Could not convert the invalid gripper state value, returning current value")
+            return -1
+        
+    def get_thruster_speed(self, percent, channel):
+        if channel == self.thruster_left.thruster_n:
+            return (self.thruster_left.min + (percent*(self.thruster_left.max-self.thruster_left.min)))
+        else:
+            print("Could not convert the invalid thruster power value, returning current value")
+            return -1
+      
         """
         conv_factor = 1000
         if(angle < 0 and angle >= -90):
@@ -172,7 +213,6 @@ class Model:
         else:
             print("Could not convert the invalid angle value, returning current value")
             return -1
-        """
 
     def get_gripper_pwm(self, state):
         if(state == "open"): #range is 1530 < value < 1900
@@ -182,6 +222,7 @@ class Model:
         else:
             print("could not parse gripper pwm input, returning current state")
             return self.gripper_left.default #pwm is 1500 for current state
+    """
 
     def parse_command(self, command):
         #split the command by spaces
@@ -199,6 +240,7 @@ class Model:
                 if i%2 == 0:
                     if(cmd_info[i] == "IMU"): #If it is IMU update command, simply return to the start_gcs_connection while loop to send back data
                         return
+                if i%2 == 0:
                     if(cmd_info[i] == "a1"): #angle 1
                         try:
                             value = self.get_angle_pwm(float(cmd_info[i+1]), self.servo_left.servo_n)
@@ -238,7 +280,7 @@ class Model:
                             print("Set servo command processed")
                     elif(cmd_info[i] == "g1"): # left gripper
                         try:
-                            value = self.get_gripper_pwm(cmd_info[i+1])
+                            value = self.get_state_pwm(float(cmd_info[i+1]), self.gripper_left.gripper_n)
                             print(value)
                         except:
                             print("Could not parse angle value, try an actual number")
@@ -251,7 +293,7 @@ class Model:
                             print("Set servo command processed")
                     elif(cmd_info[i] == "g2"): # right gripper 
                         try:
-                            value = self.get_gripper_pwm(cmd_info[i+1])
+                            value = self.get_state_pwm(float(cmd_info[i+1]), self.gripper_right.gripper_n)
                         except:
                             print("Could not parse angle value, try an actual number")
                             return
@@ -261,8 +303,19 @@ class Model:
                         else:
                             self.set_gripper_pwm(self.gripper_right.gripper_n, value)
                             print("Set servo command processed")
-
-    
+                    elif(cmd_info[i] == "t1"): # left thruster
+                        try:
+                            value = self.get_thruster_speed(float(cmd_info[i+1]), self.thruster_left.thruster_n)
+                        except:
+                            print("Could not parse angle value, try an actual number")
+                            return
+                        if(value == -1):
+                            print("Could not convert angle value to pwm, leaving at original value")
+                            return
+                        else:
+                            self.set_thruster_speed(self.thruster_left.thruster_n, value)
+                            print("Set servo command processed")
+                        
     def start_gcs_connection(self):
         # Create a TCP/IP socket
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -295,17 +348,8 @@ class Model:
                     self.parse_command(data.decode())
                     # just for checking values changing:
                     self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
-                    self.autopilot.read_param('SERVO_OUTPUT_RAW')
                     if data:
-                        print('Sending IMU data back to the client')
+                        print('Sending data back to the client')
                         IMU_data = self.update_IMU_loop()
                         connection.sendall(str.encode(IMU_data))
                     else:
@@ -321,15 +365,11 @@ if __name__ == '__main__':
     model.start_autopilot_connection()
     model.instantiate_servos()
     model.instantiate_grippers()
+    model.instantiate_thrusters()
+    model.start_motor_connection()
     # model.set_flight_mode("MANUAL")
     # model.arm()
-    """
-    model.set_servo(model.servo_left.servo_n, 1613)
-    model.set_servo(model.servo_right.servo_n, 1611)
-    model.set_servo(model.servo_tail.servo_n, 1612)
-    model.close_gripper(model.gripper_left.gripper_n)
-    model.open_gripper(model.gripper_right.gripper_n)
-    """
+    # model.update_IMU()
     model.start_gcs_connection()
 
 """
