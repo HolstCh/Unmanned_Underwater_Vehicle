@@ -19,11 +19,12 @@ RIGHT_GRIPPER_PWM_RANGE = [1200,1500,1800]
 LEFT_GRIPPER_CHANNEL = 13
 RIGHT_GRIPPER_CHANNEL = 14
 
-# range for adjusting bidirectional speed of motor controller for thruster RPM
+# range for adjusting bidirectional speed of motor controller for thruster RPM (not currently configured in software/hardware)
 LEFT_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 RIGHT_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 TAIL_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 
+# channels on the MAIN pwm output pins for each thruster (not currently configured in software/hardware)
 LEFT_THRUSTER_CHANNEL = 3
 RIGHT_THRUSTER_CHANNEL = 4
 TAIL_THRUSTER_CHANNEL = 5
