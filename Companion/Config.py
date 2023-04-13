@@ -19,12 +19,12 @@ RIGHT_GRIPPER_PWM_RANGE = [1200,1500,1800]
 LEFT_GRIPPER_CHANNEL = 13
 RIGHT_GRIPPER_CHANNEL = 14
 
-# range for adjusting bidirectional speed of motor controller for thruster RPM (not currently configured in software/hardware)
+# range for adjusting bidirectional speed of motor controller for thruster RPM (values are sent to RPi through each thruster channel but is not completely implemented)
 LEFT_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 RIGHT_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 TAIL_THRUSTER_SPEED_RANGE = [-3200, 0, 3200]
 
-# channels on the MAIN pwm output pins for each thruster (not currently configured in software/hardware)
+# channels for each thruster (not currently configured, Model.py only recieves values from the sliders/thruster speed ranges and there is no software/hardware functionality)
 LEFT_THRUSTER_CHANNEL = 3
 RIGHT_THRUSTER_CHANNEL = 4
 TAIL_THRUSTER_CHANNEL = 5
