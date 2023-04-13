@@ -5,11 +5,16 @@ from threading import Thread
 import threading
 from _thread import *
 
+""" Controller class assigns values to each electronic component, creates and sends commands to Model, receives IMU data
+ from Model. The class supports additional electronic components by adding params and values to send different types of 
+ messages """
+
+
 class Controller:
     def __init__(self):
-        self.servo_left_param = "angle1"
-        self.servo_right_param = "angle2"
-        self.servo_tail_param = "angle3"
+        self.servo_left_param = "servo1"
+        self.servo_right_param = "servo2"
+        self.servo_tail_param = "servo3"
         self.thruster_left_param = "thruster1"
         self.thruster_right_param = "thruster2"
         self.thruster_tail_param = "thruster3"
@@ -33,6 +38,16 @@ class Controller:
         self.print_lock = threading.Lock()
         return
 
+    """ 
+        set_() functions assign a value to their corresponding electronic component
+        
+        Input
+        value: percent value from 0 - 1 from each corresponding slider
+        
+        Output
+        sets value in Controller object within the View module
+    """
+
     def set_servo_left(self, value):
         self.servo_left_value = value
 
@@ -48,6 +63,70 @@ class Controller:
     def set_gripper_right(self, value):
         self.gripper_right_value = value
 
+    def set_thruster_left(self, value):
+        self.thruster_left_value = value
+
+    def set_thruster_right(self, value):
+        self.thruster_right_value = value
+
+    def set_thruster_tail(self, value):
+        self.thruster_tail_value = value
+
+    """
+        single_command_() functions create a single command corresponding to a specific electronic component and sends 
+        the command to Model class
+        
+        Output
+        takes parameter names/values from within Controller class that are set, creates a command, and then sends the
+        command to Model.py on the RPi
+    """
+
+    def single_command_servo_left(self):
+        cmd = self.create_command(self.servo_left_param, self.servo_left_value)
+        self.sendToModel(cmd)
+
+    def single_command_servo_right(self):
+        cmd = self.create_command(self.servo_right_param, self.servo_right_value)
+        self.sendToModel(cmd)
+
+    def single_command_servo_tail(self):
+        cmd = self.create_command(self.servo_tail_param, self.servo_tail_value)
+        self.sendToModel(cmd)
+
+    def single_command_gripper_right(self):
+        cmd = self.create_command(self.gripper_right_param, self.gripper_right_value)
+        self.sendToModel(cmd)
+
+    def single_command_gripper_left(self):
+        cmd = self.create_command(self.gripper_left_param, self.gripper_left_value)
+        self.sendToModel(cmd)
+
+    def single_command_thruster_left(self):
+        cmd = self.create_command(self.thruster_left_param, self.thruster_left_value)
+        self.sendToModel(cmd)
+
+    def single_command_thruster_right(self):
+        cmd = self.create_command(self.thruster_right_param, self.thruster_right_value)
+        self.sendToModel(cmd)
+
+    def single_command_thruster_tail(self):
+        cmd = self.create_command(self.thruster_tail_param, self.thruster_tail_value)
+        self.sendToModel(cmd)
+
+    """
+      multiple_commands() creates all commands for all electronic components and sends 
+      the command to Model class on RPi
+
+      Output
+      takes all parameter names/values from within Controller class that are set, creates all commands, and then sends the
+      commands to Model.py on the RPi
+    """
+
+    def multiple_commands(self):
+        cmd = self.create_commands()
+        self.sendToModel(cmd)
+
+    # get data from IMU dictionary that is returned
     def getXaccel(self):
         return self.x_accel
 
@@ -66,6 +145,7 @@ class Controller:
     def getZgyro(self):
         return self.z_gyro
 
+    # conversions for IMU data to be displayed
     def convToMMS2(self, val):
         value = int(val)
         return value * (9.81 / 1000)
@@ -74,6 +154,7 @@ class Controller:
         value = int(val)
         return value / 1000
 
+    # parse IMU data from dictionary that is sent from Model class
     def parse_IMU_data(self, raw_imu):
         data = raw_imu.split(", ")
         # Retrieve accel values only
@@ -96,21 +177,21 @@ class Controller:
             self.x_gyro = round(self.convToRads(xgyro), 3)
             self.y_gyro = round(self.convToRads(ygyro), 3)
             self.z_gyro = round(self.convToRads(zgyro), 3)
-            print("X-accel: " + xaccel + ", Y-accel: " + yaccel + ", Z-accel: " + zaccel)
         except:
             print("could not retrieve IMU data from string")
-        # print(data)
 
+    # sends command to Model where the Model deciphers which electronic component to send the command to
     def sendToModel(self, command):
         self.print_lock.acquire()
         self.client_socket.sendall(str.encode(command))
         data = self.client_socket.recv(1024)
         self.print_lock.release()
-        print(f"Received '{data!r}' from server! ")
+        # print(f"Received '{data!r}' from server! ")
         imu_raw = data.decode()
         self.parse_IMU_data(imu_raw)
         return
 
+    # end TCP connection from GCS to RPi
     def end_gcs_connection(self):
         try:
             self.client_socket.close()
@@ -118,6 +199,7 @@ class Controller:
             print("could not close socket properly")
         return
 
+    # create TCP connection from GCS to RPi
     def start_gcs_connection(self):
         # Create a TCP/IP socket
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -130,34 +212,18 @@ class Controller:
         except:
             print("Could not connect to server, quitting")
 
-    '''
-    def get_IMU_loop(self):
-        while True:
-            IMU_data = self.UDP_socket.recvfrom(1024)
-            IMU_msg = "{}".format(IMU_data[0])
-            address = "{}".format(IMU_data[1])
-            #self.parse_IMU_data(IMU_msg)
-            print(IMU_msg)
-            self.UDP_socket.sendto(str.encode("Received Data"), address)
-
-    def start_IMU_connection(self):
-        #Create a UDP Server socket
-        self.UDP_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        server_address = ("172.28.96.1", 6000)
-        self.UDP_socket.bind(server_address)
-        print("UDP Server started")
-        try:
-            self.thread = Thread(target=self.get_IMU_loop, daemon=True)
-            self.thread.start()
-        except:
-            print("Could not start IMU loop")
-    '''
-
-    def createCommand(self, comp, value):
+    # creates command for a single electronic component and sends it to Model
+    def create_command(self, comp, value):
         cmd = "*** *** " + str(comp) + " " + str(value) + " ***"
         return cmd
 
-    def create_commands(self, comp1, value1, comp2, value2, comp3, value3, comp4, value4, comp5, value5):
-        cmd = "*** *** " + str(comp1) + " " + str(value1) + " " + str(comp2) + " " + str(value2) + " " + str(comp3) \
-              + " " + str(value3) + " " + str(comp4) + " " + str(value4) + " " + str(comp5) + " " + str(value5) + " ***"
+    # creates commands for every electronic component and sends them to Model
+    def create_commands(self):
+        cmd = "*** *** " + self.servo_left_param + " " + str(self.servo_left_value) + " " + self.servo_right_param + " " \
+              + str(self.servo_right_value) + " " + self.servo_tail_param + " " + str(self.servo_tail_value) + " " + \
+              self.gripper_left_param + " " + str(self.gripper_left_value) + " " + self.gripper_right_param + " " + \
+              str(self.gripper_right_value) + " " + self.thruster_left_param + " " + str(self.thruster_left_value) + " " \
+              + self.thruster_right_param + " " + str(
+            self.thruster_right_value) + " " + self.thruster_tail_param + " " + \
+              str(self.thruster_tail_value) + " ***"
         return cmd
