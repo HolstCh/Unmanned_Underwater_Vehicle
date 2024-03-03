@@ -34,7 +34,7 @@ The Graphical User Interface (GUI) has seven sections:
 - Required packages: customtkinter, numpy, Pillow.
 - RPi requires pymavlink, smc (currently inoperable), MAVProxy.
 
-## Electronic Specifications
+## Electronic System
 
 <img src="images/Pin_connection_diagram_1.png" alt="Alt Text" width="1000" height="700"/>
 
