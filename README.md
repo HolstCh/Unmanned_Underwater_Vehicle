@@ -17,7 +17,7 @@ This research project involves designing and implementing a software/hardware in
 
 ### Ground Control System (GCS)
 
-The Graphical User Interface (GUI) has seven sections:
+The GCS has seven user interface components:
 - Thruster angle sliders
 - Thruster RPM sliders
 - Open/close gripper sliders
