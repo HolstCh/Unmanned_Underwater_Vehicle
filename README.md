@@ -1,10 +1,9 @@
-# Unmanned Underwater Vehicle Control System
+# Unmanned Underwater Vehicle Software and Hardware Integration
 
 **Table of Contents**
 1. [Product Name](#product-name)
 2. [Project Overview](#project-overview)
-3. [Main Product Elements](#main-product-elements)
-4. [Vehicle Features](#vehicle-features)
+3. [Vehicle Overview](#vehicle-overview)
 5. [Technical Specifications](#technical-specifications)
 6. [User Interface](#user-interface)
 7. [Safety Warnings](#safety-warnings)
@@ -19,7 +18,7 @@ Unmanned Underwater Robot (Version 3)
 ## 2. Project Overview
 This research project involves designing and implementing a software/hardware integration to provide underwater drone control for Unmanned Vehicles Robotarium research lab. Our team successfully integrated various electronic components and developed software to control the underwater drone. We had developed a GUI using Python that is capable of communicating with a Raspberry Pi and PX4 flight controller to send commands and read movement data. The project consists of a custom GUI, a Raspberry Pi 3 Model B, Pixhawk 4 autopilot, a drone prototype, and a list of other various electronic components. The project’s main objective is deploying and navigating the drone prototype within confined underwater spaces.
 
-![GUI](images/GUI.png)
+<img src="images/Pin_connection_diagram_1.png" alt="Alt Text" width="1000" height="700"/>
 
 ## 5. Technical Specifications
 | Component                   | Rating                             |
@@ -33,11 +32,12 @@ This research project involves designing and implementing a software/hardware in
 | Raspberry Pi 3B             | 12.5W USB Supply                   |
 | BlueRobotics LiPo Battery   | 14.8V, 15.6Ah                      |
 
-<img src="images/software_architecture.png" alt="Alt Text" width="200" height="200"/>
+<img src="images/software_architecture.jpg" alt="Alt Text" width="1000" height="700"/>
 
 - **Model**: contains logic, calculations, and direct command communication with the HMAUV
 - **View**: user interface to display data and receive commands from the user
 - **Controller**: processes command data and relays such data between Model and View
+- **Client/Server**: architecture between Controller and Model modules
 
 ## 6. User Interface
 The user interface has seven sections:
@@ -49,12 +49,9 @@ The user interface has seven sections:
 - Send Commands button
 - IMU data display (acceleration and angular speed in x, y, and z directions)
 
-![GUI](images/GCS.png)
+<img src="images/GCS.png" alt="Alt Text" width="1000" height="700"/>
 
-## 8. Installation Instructions
-See the pin diagram for HMAUV connections and installation.
-
-## 9. Software Operation
+### Software Operation
 - Python 3.8 is required on GCS.
 - Required packages: customtkinter, numpy, Pillow.
 - RPi requires pymavlink, smc (currently inoperable), MAVProxy.
